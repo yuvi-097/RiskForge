@@ -3,8 +3,8 @@
 Distributed AI-Powered Financial Risk & Fraud Detection Microservice
 
 RiskForge is a production-grade, microservice-based financial transaction risk engine built using FastAPI, PostgreSQL, Redis, and Celery.
-
 It simulates how fintech systems evaluate transactions in real-time using a hybrid rule-based + machine learning scoring pipeline.
+
 ---
 🧠 Problem Statement
 
