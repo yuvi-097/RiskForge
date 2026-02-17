@@ -1,0 +1,110 @@
+version: "3.9"
+
+services:
+  # ---- Infrastructure ----
+  postgres:
+    image: postgres:16-alpine
+    container_name: riskforge-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-riskforge}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-riskforge_secret_change_me}
+      POSTGRES_DB: ${POSTGRES_DB:-riskforge}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-riskforge}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - riskforge-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: riskforge-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - riskforge-network
+
+  # ---- Application Services ----
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: riskforge-api
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-riskforge}:${POSTGRES_PASSWORD:-riskforge_secret_change_me}@postgres:5432/${POSTGRES_DB:-riskforge}
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: on-failure
+    networks:
+      - riskforge-network
+
+  risk-service:
+    build:
+      context: ./risk-service
+      dockerfile: Dockerfile
+    container_name: riskforge-risk-worker
+    ports:
+      - "8001:8001"
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-riskforge}:${POSTGRES_PASSWORD:-riskforge_secret_change_me}@postgres:5432/${POSTGRES_DB:-riskforge}
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: on-failure
+    networks:
+      - riskforge-network
+
+  celery-worker:
+    build:
+      context: ./risk-service
+      dockerfile: Dockerfile
+    container_name: riskforge-celery-worker
+    command: celery -A app.tasks.celery_app worker --loglevel=info --concurrency=4
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-riskforge}:${POSTGRES_PASSWORD:-riskforge_secret_change_me}@postgres:5432/${POSTGRES_DB:-riskforge}
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: on-failure
+    networks:
+      - riskforge-network
+
+volumes:
+  pgdata:
+
+
+networks:
+  riskforge-network:
+    driver: bridge

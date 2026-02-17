@@ -1,0 +1,77 @@
+services:
+  # 1. API Gateway (Web Service)
+  - type: web
+    name: riskforge-api
+    env: docker
+    dockerContext: ./api-gateway
+    dockerfilePath: ./api-gateway/Dockerfile
+    plan: free
+    numInstances: 1
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: riskforge-db
+          property: connectionString
+      - key: DATABASE_URL_SYNC
+        fromDatabase:
+          name: riskforge-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: riskforge-redis
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: redis
+          name: riskforge-redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: redis
+          name: riskforge-redis
+          property: connectionString
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: API_GATEWAY_HOST
+        value: 0.0.0.0
+      - key: API_GATEWAY_PORT
+        value: 10000
+
+  # 2. Risk Service (Background Worker)
+  - type: worker
+    name: riskforge-risk-worker
+    env: docker
+    dockerContext: ./risk-service
+    dockerfilePath: ./risk-service/Dockerfile
+    plan: free
+    numInstances: 1
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: riskforge-db
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: redis
+          name: riskforge-redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: redis
+          name: riskforge-redis
+          property: connectionString
+
+  # 3. Redis (Managed)
+  - type: redis
+    name: riskforge-redis
+    plan: free
+    ipAllowList: [] # internal only
+
+databases:
+  # 4. PostgreSQL (Managed)
+  - name: riskforge-db
+    databaseName: riskforge
+    user: riskforge
+    plan: free
