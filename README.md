@@ -1,9 +1,30 @@
 # 🛡️ RiskForge — Financial Risk & Fraud Detection System
 
-A production-grade, microservice-based financial risk and fraud detection platform built with FastAPI, PostgreSQL, Redis, Celery, and XGBoost ML.
+Distributed AI-Powered Financial Risk & Fraud Detection Microservice
+
+RiskForge is a production-grade, microservice-based financial transaction risk engine built using FastAPI, PostgreSQL, Redis, and Celery.
+
+It simulates how fintech systems evaluate transactions in real-time using a hybrid rule-based + machine learning scoring pipeline.
+---
+🧠 Problem Statement
+
+Financial platforms must instantly determine whether a transaction is:
+
+✅ Safe
+⚠ Suspicious
+🚫 Fraudulent
+
+Incorrect approvals lead to financial loss.
+Incorrect blocks lead to poor user experience.
+
+RiskForge replicates an industry-grade fraud detection backend that:
+Accepts transaction data
+Evaluates behavioral risk signals
+Runs ML-based fraud inference asynchronously
+Generates a hybrid risk score
+Produces actionable decisions
 
 ---
-
 ## 🏗️ Architecture
 
 ```
@@ -97,7 +118,19 @@ riskforge/
 │                  │       └───────────────────────────┘
 └──────────────────┘
 ```
+🛠 Tech Stack
 
+FastAPI
+PostgreSQL
+SQLAlchemy 2.0
+Redis
+Celery
+Docker + Docker Compose
+Pytest
+Scikit-learn (Logistic Regression)
+Alembic (Migrations)
+JWT (OAuth2)
+Pydantic BaseSettings
 ---
 
 ## 🚀 Quick Start
@@ -117,6 +150,14 @@ cp .env.example .env
 cd risk-service
 pip install -r requirements.txt
 python -m app.ml.train_model
+
+📊 Hybrid Risk Scoring Model
+RiskForge combines:
+ML-based fraud probability
+Deterministic rule-based risk scoring
+Final Risk Formula
+final_score = 0.7 * ml_score + 0.3 * normalized_rule_score
+
 ```
 
 ### 3. Launch with Docker Compose
@@ -125,14 +166,20 @@ python -m app.ml.train_model
 cd ..
 docker-compose up --build -d
 ```
-
 Services:
-| Service        | URL                    |
-|---------------|------------------------|
-| API Gateway   | http://localhost:8000   |
-| Risk Service  | http://localhost:8001   |
-| PostgreSQL    | localhost:5432          |
-| Redis         | localhost:6379          |
+API Gateway
+Authentication (JWT)
+User management
+Transaction intake
+Rate limiting (Redis-based)
+Risk Service
+ML inference
+Rule-based scoring
+Hybrid risk computation
+Alert generation
+Infrastructure
+PostgreSQL
+Redis
 
 ### 4. Run Database Migrations
 
