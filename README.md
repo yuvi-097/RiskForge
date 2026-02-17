@@ -18,10 +18,10 @@ Incorrect approvals lead to financial loss.
 Incorrect blocks lead to poor user experience.
 
 RiskForge replicates an industry-grade fraud detection backend that:
-Accepts transaction data
-Evaluates behavioral risk signals
-Runs ML-based fraud inference asynchronously
-Generates a hybrid risk score
+Accepts transaction data,
+Evaluates behavioral risk signals,
+Runs ML-based fraud inference asynchronously,
+Generates a hybrid risk score,
 Produces actionable decisions
 
 ---
